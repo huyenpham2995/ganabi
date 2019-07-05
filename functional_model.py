@@ -1,32 +1,38 @@
+import os, logging
+from subprocess import call
 import tensorflow as tf
 import numpy as np
-from tensorflow.keras.layers import Input, Dense
+import load_data
+from utils import parse_args, dir_utils
+from tensorflow.keras.layers import Input, Dense, Flatten
 from tensorflow.keras.models import Model
 
-data = load_data.main("/data/Hanabi-Full_2_6_150.pkl")
+#getting rid of "does not support AVX" warnings and info logs
+logging.getLogger('tensorflow').disabled = True
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-train_x = np.array([0, 0, 0, 0, 0, 0], dtype = int)
-train_y = np.array([1, 1, 1, 1, 1, 1], dtype = int)
+#CONST VARIABLES
+DATAPATH = os.path.dirname(os.path.realpath(__file__))
 
-test_x = train_x
-test_y = train_y
+#load data
+#call("python utils/parse_args.py --datapath " + DATAPATH + "/data/Hanabi-Full_2_6_150.pkl", shell=True)
+class Naive_MLP (object):
+    def __init__(self, learning_rate=0.001, ):
+        self.learning_rate = learning_rate
 
-num_inputs = 1
-num_hidden_nodes = 64
-num_outputs = 2
-batch_size = 10
-num_epochs = 1
-learning_rate = 0.001
+    def main(self):
+        #parse arguments
+        args = parse_args.parse()
+        args.datapath = DATAPATH + "/data/Hanabi-Full_2_6_150.pkl"
+        args = parse_args.resolve_datapath(args)
 
-inputs = Input(shape=([num_inputs]))
-hidden_layer = Dense(num_hidden_nodes, activation='relu')(inputs)
-hidden_layer = Dense(num_hidden_nodes, activation='relu')(hidden_layer)
-predictions = Dense(batch_size, activation='softmax')(hidden_layer)
+        #create/load data
+        '''
+        - data: a reference to the Dataset object (refer to load_data.py)
+        '''
+        data = load_data.main(args)
+        #getting train_data info
+        [_,_,train_agent_obs], train_agent_act = data.generator('train')
 
-model = Model(inputs=inputs, outputs=predictions)
-model.compile(optimizer='Adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
 
-model.fit(train_x, train_y, num_epochs)
-model.evaluate(test_x, test_y)
+
