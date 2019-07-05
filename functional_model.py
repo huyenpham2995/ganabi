@@ -1,7 +1,9 @@
 import tensorflow as tf
 import numpy as np
-from keras.layers import Input, Dense
-from keras.models import Model
+from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.models import Model
+
+data = load_data.main("/data/Hanabi-Full_2_6_150.pkl")
 
 train_x = np.array([0, 0, 0, 0, 0, 0], dtype = int)
 train_y = np.array([1, 1, 1, 1, 1, 1], dtype = int)
