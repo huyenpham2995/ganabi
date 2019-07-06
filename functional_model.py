@@ -4,10 +4,10 @@ import tensorflow as tf
 import numpy as np
 import load_data
 from utils import parse_args, dir_utils
-from tensorflow.keras.layers import Input, Dense, Flatten
-from tensorflow.keras.models import Model
+from tf.keras.layers import Input, Dense, Flatten
+from tf.keras.models import Model
 
-#gettingg rid of "does not support AVX" warnings and info logs
+#getting rid of "does not support AVX" warnings and info logs
 logging.getLogger('tensorflow').disabled = True
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
