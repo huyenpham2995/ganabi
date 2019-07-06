@@ -7,32 +7,26 @@ from utils import parse_args, dir_utils
 from tensorflow.keras.layers import Input, Dense, Flatten
 from tensorflow.keras.models import Model
 
-#getting rid of "does not support AVX" warnings and info logs
+#gettingg rid of "does not support AVX" warnings and info logs
 logging.getLogger('tensorflow').disabled = True
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 #CONST VARIABLES
-DATAPATH = os.path.dirname(os.path.realpath(__file__))
 
-#load data
-#call("python utils/parse_args.py --datapath " + DATAPATH + "/data/Hanabi-Full_2_6_150.pkl", shell=True)
-class Naive_MLP (object):
-    def __init__(self, learning_rate=0.001, ):
-        self.learning_rate = learning_rate
-
-    def main(self):
-        #parse arguments
-        args = parse_args.parse()
-        args.datapath = DATAPATH + "/data/Hanabi-Full_2_6_150.pkl"
-        args = parse_args.resolve_datapath(args)
-
-        #create/load data
+class Naive_MLP(object):
+    def __init__(self, data, batch_size=10, activations='relu',
+            optimizer='Adam', loss='sparse_categorical_crossentropy',
+            metrics=['accuracy']):
         '''
-        - data: a reference to the Dataset object (refer to load_data.py)
+        - data: the object returned from load data
         '''
-        data = load_data.main(args)
-        #getting train_data info
-        [_,_,train_agent_obs], train_agent_act = data.generator('train')
+        self.data = data
+        self.batch_size = batch_size
+        self.activations = activations
+        self.optimizer = optimizer
+        self.loss = loss
+        self.metrics = metrics
 
+    def splittingData(self):
 
 
