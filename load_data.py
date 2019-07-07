@@ -8,6 +8,9 @@ from subprocess import call
 import pickle
 import random
 
+#constant variables
+NUM_ADHOC_GAMES = 10
+OBS_ACT_VEC_LEN = 658
 
 @gin.configurable
 class Dataset(object):
@@ -51,11 +54,12 @@ class Dataset(object):
         
         # data_bank: [AgentName][num_games][0 = 
         #         obs_vec, 1 = act_vec][game_step][index into vec]
-        agent = random.choice(data_bank.keys())
+        agent = random.choice(list(data_bank.keys()))
         adhoc_games = [random.choice(list(data_bank[agent])) 
                 for _ in range(NUM_ADHOC_GAMES)]
         game_lengths = [len(game[0]) for game in adhoc_games]
-        
+        MAX_GAME_LEN = max(game_lengths)
+
         # adhoc_games: [-->[[obs_act_vec],[obs_act_vec],...]<--game1, 
         #               -->[[obs_act_vec],[obs_act_vec],...]<--game2...]
         adhoc_games = [[adhoc_games[i][0][l] + adhoc_games[i][1][l] 
@@ -81,7 +85,8 @@ class Dataset(object):
         agent_act = np.array(agent_act)
         
         #FIXME: needs to return same_act
-        return ([np_adhoc_games, game_lengths, agent_obs], agent_act)
+        #return ([np_adhoc_games, game_lengths, agent_obs], agent_act)
+        return agent_obs, agent_act
 
 def main(args):
     data = Dataset()
@@ -100,7 +105,7 @@ def main(args):
     
     data.read(raw_data)
     
-    import pdb; pdb.set_trace()
+#    import pdb; pdb.set_trace()
     return data
 
 
