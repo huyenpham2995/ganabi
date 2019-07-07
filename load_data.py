@@ -47,7 +47,7 @@ class Dataset(object):
         self.test_data[test_agent] = raw_data[test_agent]
 
 
-    def generator(self, batch_type='train'):
+    def generator(self, batch_type='train', shuffle='false'):
         if batch_type == 'train':
             data_bank = self.train_data
         elif batch_type == 'validation':
@@ -72,32 +72,40 @@ class Dataset(object):
                        for l in range(game_lengths[i])] 
                        for i in range(NUM_ADHOC_GAMES)]
         
-        # assemble generated agent observations and target actions
-        #NUM_AGENT_OBS is the sum of the length of all 10 adhoc_games (total number of 
-        #observations throughout all 10 games
-
-        NUM_AGENT_OBS = np.sum(game_lengths)
+        # assemble generated agent observations and actions into x and y array
+        # NUM_TOTAL_MOVES is the sum of the length of all 10 adhoc_games (total number of 
+        # observations/actions throughout all 10 games
+        NUM_TOTAL_MOVES = np.sum(game_lengths)
         agent_obs, agent_act = [], []
-        for i in range(NUM_AGENT_OBS):
-            game = random.choice(list(data_bank[agent]))
-            step_num = random.randint(0, len(game[0])-1)
-            agent_obs.append(game[0][step_num])
-            agent_act.append(game[1][step_num])
-        
-        # convert nested uneven list of adhoc games into padded numpy array
-        np_adhoc_games = np.zeros(shape=(NUM_ADHOC_GAMES, MAX_GAME_LEN, OBS_ACT_VEC_LEN)) 
-        game_lengths = np.array(game_lengths)
-        for game_num, game_len in enumerate(game_lengths):
-            np_adhoc_games[game_num, :game_lengths[game_num], :] = \
-                    np.asarray(adhoc_games[game_num])
+
+        # choose from all observations/actions randomly, with all equal chance (ie. could have 20
+        # of one step and 0 of another)
+        if shuffle == 'random':
+            for i in range(NUM_TOTAL_MOVES):
+                game = random.choice(list(data_bank[agent]))
+                step_num = random.randint(0, len(game[0])-1)
+                agent_obs.append(game[0][step_num])
+                agent_act.append(game[1][step_num])
+        # append each observations/actions in order
+        elif shuffle == 'false':
+            for i in range(NUM_ADHOC_GAMES):
+                for l in range(game_lengths[i]):
+                    agent_obs.append(list(data_bank[agent][l][0][i]))
+                    agent_act.append(list(data_bank[agent][l][1][i]))
+        # append each observation/action exactly once, but in random order
+        elif shuffle == 'even':
+            agent_obs_act = np.array()
+            for i in range(NUM_ADHOC_GAMES):
+                for l in range(game_lengths[i]):
+                    agent_obs_act.append(data_bank[agent][l][0][i] + data_bank[agent][l][1][i])
+            for i in range(0, len(agent_obs_act), 2):
+                agent_obs.append(agent_obs_act[i])
+                agent_obs.append(agent_obs_act[i+1])
         
         agent_obs = np.array(agent_obs)
         agent_act = np.array(agent_act)
         
         import pdb; pdb.set_trace()
-
-        #FIXME: needs to return same_act
-        #return ([np_adhoc_games, game_lengths, agent_obs], agent_act)
         return agent_obs, agent_act
 
 def main(args):
