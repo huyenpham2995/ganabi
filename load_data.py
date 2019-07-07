@@ -7,9 +7,13 @@ import gin
 from subprocess import call
 import pickle
 import random
+import numpy as np
 
 #constant variables
 NUM_ADHOC_GAMES = 10
+OBS_VEC_LEN = 658
+ACT_VEC_LEN = 20
+OBS_ACT_VEC_LEN = OBS_VEC_LEN + ACT_VEC_LEN
 
 @gin.configurable
 class Dataset(object):
@@ -61,7 +65,7 @@ class Dataset(object):
         #number of round in each game
         game_lengths = [len(game[0]) for game in adhoc_games]
         MAX_GAME_LEN = max(game_lengths)
-
+        
         # adhoc_games: [-->[[obs_act_vec],[obs_act_vec],...]<--game1, 
         #               -->[[obs_act_vec],[obs_act_vec],...]<--game2...]
         adhoc_games = [[adhoc_games[i][0][l] + adhoc_games[i][1][l] 
@@ -71,6 +75,8 @@ class Dataset(object):
         # assemble generated agent observations and target actions
         #NUM_AGENT_OBS is the sum of the length of all 10 adhoc_games (total number of 
         #observations throughout all 10 games
+
+        NUM_AGENT_OBS = np.sum(game_lengths)
         agent_obs, agent_act = [], []
         for i in range(NUM_AGENT_OBS):
             game = random.choice(list(data_bank[agent]))
@@ -88,6 +94,8 @@ class Dataset(object):
         agent_obs = np.array(agent_obs)
         agent_act = np.array(agent_act)
         
+        import pdb; pdb.set_trace()
+
         #FIXME: needs to return same_act
         #return ([np_adhoc_games, game_lengths, agent_obs], agent_act)
         return agent_obs, agent_act

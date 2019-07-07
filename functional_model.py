@@ -58,7 +58,8 @@ class Naive_MLP(object):
         #get the training data and validation data
         train_obs_vec, train_act_vec = self.get_formatted_data('train')
         validation_obs_vec, validation_act_vec = self.get_formatted_data('validation')
-        
+        test_obs_vec, test_act_vec = self.get_formatted_data('test')
+
         #obtain input and output layer to create the model
         model = self.create_model
         model.compile(optimizer=optimizer,
@@ -70,5 +71,5 @@ class Naive_MLP(object):
                 verbose=1,
                 validation_data=(validation_obs_vec,validation_act_vec),
                 shuffle = True)
-        
+        model.evaluate(test_obs_vec, test_act_vec)
         return model
