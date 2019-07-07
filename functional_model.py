@@ -6,7 +6,7 @@ import load_data
 from utils import parse_args, dir_utils
 from tensorflow.keras.layers import Input, Dense, Flatten
 from tensorflow.keras.models import Model
-from tensorflow.keras.optimizer import Adam
+from tensorflow.keras.optimizers import Adam
 
 #getting rid of "does not support AVX" warnings and info logs
 logging.getLogger('tensorflow').disabled = True
@@ -15,7 +15,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 #CONST VARIABLES
 
 class Naive_MLP(object):
-    def __init__(self, data)
+    def __init__(self, data):
         '''
         - data: the object returned from load data
         '''

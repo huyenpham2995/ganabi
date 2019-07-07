@@ -29,8 +29,8 @@ def main():
     - data: a reference to the Dataset object (refer to load_data.py)
      '''
     data = load_data.main(args)
-    model = functional_model.Naive_MLP(data)
-    train_obs_vec, train_act_vec = model.get_formatted_data('train')
+    #model = functional_model.Naive_MLP(data)
+    #train_obs_vec, train_act_vec = model.get_formatted_data('train')
 
 
 if __name__ == "__main__":

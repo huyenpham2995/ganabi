@@ -10,7 +10,6 @@ import random
 
 #constant variables
 NUM_ADHOC_GAMES = 10
-OBS_ACT_VEC_LEN = 658
 
 @gin.configurable
 class Dataset(object):
@@ -54,9 +53,12 @@ class Dataset(object):
         
         # data_bank: [AgentName][num_games][0 = 
         #         obs_vec, 1 = act_vec][game_step][index into vec]
+        #List of all agents. We chose randomely 1 agent
         agent = random.choice(list(data_bank.keys()))
+        #10 ad_hoc games which were played by agent
         adhoc_games = [random.choice(list(data_bank[agent])) 
                 for _ in range(NUM_ADHOC_GAMES)]
+        #number of round in each game
         game_lengths = [len(game[0]) for game in adhoc_games]
         MAX_GAME_LEN = max(game_lengths)
 
@@ -67,6 +69,8 @@ class Dataset(object):
                        for i in range(NUM_ADHOC_GAMES)]
         
         # assemble generated agent observations and target actions
+        #NUM_AGENT_OBS is the sum of the length of all 10 adhoc_games (total number of 
+        #observations throughout all 10 games
         agent_obs, agent_act = [], []
         for i in range(NUM_AGENT_OBS):
             game = random.choice(list(data_bank[agent]))
@@ -105,7 +109,7 @@ def main(args):
     
     data.read(raw_data)
     
-#    import pdb; pdb.set_trace()
+    import pdb; pdb.set_trace()
     return data
 
 
