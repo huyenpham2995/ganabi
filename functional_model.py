@@ -37,8 +37,7 @@ class Naive_MLP(object):
         return obs_vec, act_vec
 
     '''Create a model'''
-    def create_model(self, batch_size=10, activations=['relu','softmax'],
-            optimizer='Adam', num_hidden_nodes = [256,128,64,20]):
+    def create_model(self, activations=['relu','softmax'], num_hidden_nodes = [256,128,64,20]):
         train_obs_vec, train_act_vec = self.get_formatted_data('train')
         
         input_layer = Input(shape=(len(train_obs_vec),))
@@ -47,11 +46,29 @@ class Naive_MLP(object):
             hidden_layer = Dense(num_hidden_nodes[i], activations=activations[0])(hidden_layer)
 
         output_layer = Dense(num_hidden_nodes[len(num_hidden_nodes)-1], activations = activations[len(activations)-1])
-
-        return input_layer, output_layer
+        model = Model(inputs=input_layer, outputs=output_layer)
+        return model
 
     '''train the model we just created'''
     def train_model(self, optimizer=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False), 
-            loss ='sparse_categorical_crossentropy', metric=['accuracy'], epochs=100,batch_size=10):
-        input_layer, output_layer = self.create_model()
-        model = Model(inputs=input_layer, outputs=output_layer)
+            loss ='sparse_categorical_crossentropy',
+            metrics=['accuracy'],
+            epochs=100,
+            batch_size=10):
+        #get the training data and validation data
+        train_obs_vec, train_act_vec = self.get_formatted_data('train')
+        validation_obs_vec, validation_act_vec = self.get_formatted_data('validation')
+        
+        #obtain input and output layer to create the model
+        model = self.create_model
+        model.compile(optimizer=optimizer,
+                loss=loss,
+                metrics=metrics)
+        tr_history = model.fit(train_obs_vec, train_act_vec,
+                batch_size=batch_size,
+                epochs=epochs,
+                verbose=1,
+                validation_data=(validation_obs_vec,validation_act_vec),
+                shuffle = True)
+        
+        return model
