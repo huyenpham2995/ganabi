@@ -89,18 +89,20 @@ class Dataset(object):
         # append each observations/actions in order
         elif shuffle == 'false':
             for i in range(NUM_ADHOC_GAMES):
-                for l in range(game_lengths[i]):
-                    agent_obs.append(list(data_bank[agent][l][0][i]))
-                    agent_act.append(list(data_bank[agent][l][1][i]))
+                game_len = len(data_bank[agent][i][0])
+                for l in range(game_len):
+                    agent_obs.append(list(data_bank[agent][i][0][l]))
+                    agent_act.append(list(data_bank[agent][i][1][l]))
         # append each observation/action exactly once, but in random order
         elif shuffle == 'even':
             agent_obs_act = np.array()
             for i in range(NUM_ADHOC_GAMES):
-                for l in range(game_lengths[i]):
-                    agent_obs_act.append(data_bank[agent][l][0][i] + data_bank[agent][l][1][i])
+                game_len = len(data_bank[agent][i][0])
+                for l in range(game_len):
+                    agent_obs_act.append(data_bank[agent][i][0][l] + data_bank[agent][i][1][l])
             for i in range(0, len(agent_obs_act), 2):
                 agent_obs.append(agent_obs_act[i])
-                agent_obs.append(agent_obs_act[i+1])
+                agent_act.append(agent_obs_act[i+1])
         
         agent_obs = np.array(agent_obs)
         agent_act = np.array(agent_act)
