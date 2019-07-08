@@ -11,6 +11,7 @@ import gin
 import os
 import tensorflow as tf # version 1.x
 import importlib
+import random
 
 def import_agents(expertdir, agent_config):
     '''Import every agent present in expertdir, and return a dictionary 
@@ -113,6 +114,54 @@ class Dataset(object):
 
         return raw_data
 
+    def create_one_agent_data(self):
+        '''Choose one agent and have it play play self.num_games.
+        The games are self-play, so agent A plays A, B plays B, etc. Each game 
+        has the following structure:
+            [ [[obs_0], [obs_1], ..., [obs_n]], [[act_0], [act_1], ..., [act_n]] ]
+        where each obs_i and act_i are the observation and resultant action that
+        an agent took at game step i. Each game round consists of num_players game
+        steps. A game can have a variable amount of rounds; you can lose early.
+        
+        The output, raw_data, is a dictionary with (key, value) pairs:
+            key: <agent_name>_round_<game_num> (string)
+            value: list of games played by this agent, self.num_games long; each
+                game has the format as shown above'''
+        raw_data = defaultdict(list)
+        playing_agent = random.choice(self.available_agents.keys())
+
+        for i in self.available_agents.keys():
+            for game_num in range(self.num_games):
+
+                raw_data[playing_agent + '_round_' + str(i)].append([[],[]])
+                observations = self.environment.reset()
+                game_done = False
+
+                while not game_done:
+                    for agent_id in range(self.num_players):
+                        observation = observations['player_observations'][agent_id]
+                        action_vec, action = one_hot_vectorized_action(
+                                self.available_agents[playing_agent],
+                                self.environment.num_moves(),
+                                observation)
+                        raw_data[playing_agent + '_round_' + str(i)][game_num][0].append(
+                                observation['vectorized'])
+                        raw_data[playing_agent + '_round_' + str(i)][game_num][1].append(action_vec)
+    
+                        if observation['current_player'] == agent_id:
+                            assert action is not None
+                            current_player_action = action
+                        else:
+                            assert action is None
+    
+                        observations, _, game_done, _ = self.environment.step(
+                                current_player_action)
+                        if game_done:
+                            break
+
+        return raw_data
+
+
 def main(args):
     data_creator = Dataset(args)
     # FIXME: all parse_args functions with "resolve" in the name should happen
@@ -123,7 +172,7 @@ def main(args):
             data_creator.num_unique_agents,
             data_creator.num_games)
 
-    raw_data = data_creator.create_data()
+    raw_data = data_creator.create_one_agent_data()
     pickle.dump(raw_data, open(args.datapath, "wb"))
 
 if __name__ == '__main__':
