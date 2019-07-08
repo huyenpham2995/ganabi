@@ -15,32 +15,20 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 #CONST VARIABLES
 
 class Naive_MLP(object):
-    def __init__(self, data):
+    def __init__(self, train_obs, train_act, valid_obs, valid_act):
         '''
         - data: the object returned from load data
         '''
-        self.data = data
-
-    #splitting data into the right format of [[obs_vec], [acts_vec]]
-    def get_formatted_data(self, data_type = 'train'):
-        obs_vec = []
-        act_vec = []
-        if data_type == 'train':
-            obs_vec, act_vec = self.data.generator('train')
-        elif data_type == 'validation':
-            obs_vec, act_vec = self.data.generator('validation')
-        elif data_type == 'test':
-            obs_vec, act_vec = self.data.generator('test')
-        else:
-            raise ValueError('Invalid data type')
-
-        return obs_vec, act_vec
-
+        self.train_obs = train_obs
+        self.train_act = train_act
+        self.valid_obs = valid_obs
+        self.valid_act = valid_act
+        
+        
     '''Create a model'''
     def create_model(self, activations=['relu','softmax'], num_hidden_nodes = [256,128,64,20]):
-        train_obs_vec, train_act_vec = self.get_formatted_data('train')
         
-        input_layer = Input(shape=(len(train_obs_vec),))
+        input_layer = Input(shape=(len(self.train_obs),))
         hidden_layer = Dense(num_hidden_nodes[0], activations=activations[0])(input_layer)
         for i in range(1,len(num_hidden_nodes)-1):
             hidden_layer = Dense(num_hidden_nodes[i], activations=activations[0])(hidden_layer)
@@ -55,21 +43,16 @@ class Naive_MLP(object):
             metrics=['accuracy'],
             epochs=100,
             batch_size=10):
-        #get the training data and validation data
-        train_obs_vec, train_act_vec = self.get_formatted_data('train')
-        validation_obs_vec, validation_act_vec = self.get_formatted_data('validation')
-        test_obs_vec, test_act_vec = self.get_formatted_data('test')
-
+        
         #obtain input and output layer to create the model
         model = self.create_model
         model.compile(optimizer=optimizer,
                 loss=loss,
                 metrics=metrics)
-        tr_history = model.fit(train_obs_vec, train_act_vec,
+        tr_history = model.fit(self.train_obs, self.train_act,
                 batch_size=batch_size,
                 epochs=epochs,
                 verbose=1,
-                validation_data=(validation_obs_vec,validation_act_vec),
+                validation_data=(self.valid_obs,self.valid_act),
                 shuffle = True)
-        model.evaluate(test_obs_vec, test_act_vec)
         return model

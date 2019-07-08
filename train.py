@@ -7,21 +7,6 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Input, Dense, Flatten
 from tensorflow.keras.models import Model
 
-@gin.configurable
-class Trainer(object):
-    @gin.configurable
-    def __init__(self, args,
-                 optimizer=None,
-                 loss=None,
-                 metrics=None,
-                 batch_size=None,
-                 epochs=None):
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metrics = metrics
-        self.batch_size = batch_size
-        self.epochs = epochs
-
 def set_up_vars():
     activations = ['relu', 'softmax']
     num_hidden_nodes = [256,128,64,20]
@@ -33,13 +18,12 @@ def set_up_vars():
     
     return activations, num_hidden_nodes, optimizer, loss, metrics, epochs, batch_size
 
-def main(data, args):
+def main(train_obs, train_act, valid_obs, valid_act, args):
+    print("---------CREATING MODEL--------")
+    
     #get the training data and validation data
     activations, num_hidden_nodes, optimizer, loss, metrics, epochs, batch_size = set_up_vars()
-    train_obs, train_act = data.generator(batch_type='train')
-    validation_obs, validation_act= data.generator(batch_type='validation')
-    test_obs, test_act = data.generator(batch_type='test')
-    
+     
     # creating layers for model and linking them
     input_layer = Input(shape=(len(train_obs[0]),))
     hidden_layer = Dense(num_hidden_nodes[0], activation=activations[0])(input_layer)
@@ -49,21 +33,21 @@ def main(data, args):
     output_layer = Dense(num_hidden_nodes[len(num_hidden_nodes)-1], activation = activations[len(activations)-1])(flatten_layer)
     model = Model(inputs=input_layer, outputs=output_layer)
 
-
     # compiling model
     model.compile(optimizer=optimizer,
             loss=loss,
             metrics=metrics)
 
+    print("----------TRAINING MODEL---------")
     # training model
     tr_history = model.fit(train_obs,train_act,
             epochs=epochs,
-            verbose=1)
+            verbose=1,
+            validation_data=(valid_obs, valid_act))
 
-    return model, test_obs, test_act
+    return model
 
 if __name__ == "__main__":
     args = parse_args.parse_with_resolved_paths()
     gin.parse_config_file(args.configpath)
-    data = load_data.main(args)
-    main(data, args)
+    main(train_obs, train_act, valid_obs, valid_act, args)

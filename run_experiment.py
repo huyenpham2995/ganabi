@@ -10,15 +10,20 @@ from utils import parse_args, dir_utils
 from tensorflow.keras.layers import Input, Dense, Flatten
 from tensorflow.keras.models import Model
 
-#gettingg rid of "does not support AVX" warnings and info logs
+#getting rid of "does not support AVX" warnings and info logs
 logging.getLogger('tensorflow').disabled = True
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 #CONST VARIABLES
 DATAPATH = os.path.dirname(os.path.realpath(__file__))
 
-#load data
-#call("python utils/parse_args.py --datapath " + DATAPATH + "/data/Hanabi-Full_2_6_150.pkl", shell=True)
+def initialize_data(args):
+    data = load_data.main(args)
+    train_obs, train_act = data.generator('train')
+    valid_obs, valid_act  = data.generator('validation')
+    test_obs, test_act = data.generator('test')
+
+    return train_obs, train_act, valid_obs, valid_act, test_obs, test_act
 
 def main():
     #parse arguments
@@ -30,9 +35,9 @@ def main():
     '''
     - data: a reference to the Dataset object (refer to load_data.py)
      '''
-    data = load_data.main(args)
-    model, test_obs, test_act = train.main(data,args)
-    evaluate.main(model, test_obs, test_act)
+    train_obs, train_act, valid_obs, valid_act, test_obs, test_act = initialize_data(args)
+    model = train.main(train_obs, train_act, valid_obs, valid_act, args)
+    evaluate.main(model,test_obs, test_act)
 
 if __name__ == "__main__":
     main()

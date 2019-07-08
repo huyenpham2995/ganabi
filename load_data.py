@@ -107,7 +107,6 @@ class Dataset(object):
         agent_obs = np.array(agent_obs)
         agent_act = np.array(agent_act)
         
-       # import pdb; pdb.set_trace()
         return agent_obs, agent_act
 
 def main(args):
