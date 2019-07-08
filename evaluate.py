@@ -1,22 +1,9 @@
-# Copy code from earlier version.
-
-
-@gin.configurable
-class Evaluator(object):
-    def __init__(self):
-
-    def eval():
-
-def main(model, data_reader, args):
+def main(model, test_obs, test_act):
     # read in test data
     # forward pass with model
     # display metrics, save results
-
-def single_move():
-    #TODO
+    print("---------TESTING MODEL---------")
+    model.evaluate(test_obs, test_act)
 
 if __name__ == "__main__":
-    args = parse_args.parse()
-    data_reader = create_data.main(args)
-    model = train.main(data_reader, args)
-    main(model, data_reader, args)
+    main(model, test_obs, test_act)

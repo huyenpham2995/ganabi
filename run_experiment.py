@@ -5,6 +5,7 @@ import numpy as np
 import load_data
 import functional_model
 import train
+import evaluate
 from utils import parse_args, dir_utils
 from tensorflow.keras.layers import Input, Dense, Flatten
 from tensorflow.keras.models import Model
@@ -30,9 +31,8 @@ def main():
     - data: a reference to the Dataset object (refer to load_data.py)
      '''
     data = load_data.main(args)
-    model = train.main(data,args)
-
-
+    model, test_obs, test_act = train.main(data,args)
+    evaluate.main(model, test_obs, test_act)
 
 if __name__ == "__main__":
     main()

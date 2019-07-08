@@ -26,7 +26,7 @@ def set_up_vars():
     activations = ['relu', 'softmax']
     num_hidden_nodes = [256,128,64,20]
     optimizer=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
-    loss ='sparse_categorical_crossentropy'
+    loss ='mean_squared_error'
     metrics=['accuracy']
     epochs=100
     batch_size=32
@@ -34,54 +34,33 @@ def set_up_vars():
     return activations, num_hidden_nodes, optimizer, loss, metrics, epochs, batch_size
 
 def main(data, args):
-    '''
-    trainer = Trainer(args) # gin configured
-
-    #FIXME: combine into one line once stuff works
-    mode_module = importlib.import_module(args.mode)                          
-    model = mode_module.build_model(args)
-
-    model.compile(
-            optimizer = trainer.optimizer,
-            loss = trainer.loss,
-            metrics = trainer.metrics)
-
-    tr_history = model.fit_generator(
-            generator = data.generator('train'),
-            verbose = 2, # one line per epoch
-            batch_size = trainer.batch_size, 
-            epochs = trainer.epochs, # = total data / batch_size
-            validation_split = 0.1, # fraction of data used for val
-            shuffle = True)
-    '''
     #get the training data and validation data
     activations, num_hidden_nodes, optimizer, loss, metrics, epochs, batch_size = set_up_vars()
     train_obs, train_act = data.generator(batch_type='train')
     validation_obs, validation_act= data.generator(batch_type='validation')
     test_obs, test_act = data.generator(batch_type='test')
-
-    #import pdb; pdb.set_trace()
-    input_layer = Input(shape=([len(train_obs[0])]))
+    
+    # creating layers for model and linking them
+    input_layer = Input(shape=(len(train_obs[0]),))
     hidden_layer = Dense(num_hidden_nodes[0], activation=activations[0])(input_layer)
     for i in range(1,len(num_hidden_nodes)-1):
         hidden_layer = Dense(num_hidden_nodes[i], activation=activations[0])(hidden_layer)
-
-    output_layer = Dense(num_hidden_nodes[len(num_hidden_nodes)-1], activation = activations[len(activations)-1])(hidden_layer)
+    flatten_layer = Flatten()(hidden_layer)
+    output_layer = Dense(num_hidden_nodes[len(num_hidden_nodes)-1], activation = activations[len(activations)-1])(flatten_layer)
     model = Model(inputs=input_layer, outputs=output_layer)
 
+
+    # compiling model
     model.compile(optimizer=optimizer,
             loss=loss,
             metrics=metrics)
-    tr_history = model.fit(train_obs[0],train_act[0],
-            #batch_size = batch_size,
+
+    # training model
+    tr_history = model.fit(train_obs,train_act,
             epochs=epochs,
             verbose=1)
-            #validation_data=(),
-            
-        #model.evaluate(test_obs_vec, test_act_vec)
 
-
-    return model
+    return model, test_obs, test_act
 
 if __name__ == "__main__":
     args = parse_args.parse_with_resolved_paths()
