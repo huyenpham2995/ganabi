@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 import load_data
 import functional_model
+import train
 from utils import parse_args, dir_utils
 from tensorflow.keras.layers import Input, Dense, Flatten
 from tensorflow.keras.models import Model
@@ -29,8 +30,8 @@ def main():
     - data: a reference to the Dataset object (refer to load_data.py)
      '''
     data = load_data.main(args)
-    model = functional_model.Naive_MLP(data)
-    train_obs_vec, train_act_vec = model.get_formatted_data('train')
+    model = train.main(data,args)
+
 
 
 if __name__ == "__main__":
