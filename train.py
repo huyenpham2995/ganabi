@@ -2,6 +2,7 @@ from utils import parse_args
 import importlib
 import load_data
 import gin
+from tensorflow.keras.optimizers import Adam
 
 @gin.configurable
 class Trainer(object):
@@ -18,7 +19,19 @@ class Trainer(object):
         self.batch_size = batch_size
         self.epochs = epochs
 
+def set_up_vars():
+    activations = ['relu', 'softmax']
+    num_hidden_nodes = [256,128,64,20]
+    optimizer=Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+    loss ='sparse_categorical_crossentropy'
+    metrics=['accuracy']
+    epochs=100
+    batch_size=32
+    
+    return activations, num_hidden_nodes, optimizer, loss, metrics, epochs, batch_size
+
 def main(data, args):
+    '''
     trainer = Trainer(args) # gin configured
 
     #FIXME: combine into one line once stuff works
@@ -37,7 +50,33 @@ def main(data, args):
             epochs = trainer.epochs, # = total data / batch_size
             validation_split = 0.1, # fraction of data used for val
             shuffle = True)
-              
+    '''
+    #get the training data and validation data
+    activations, num_hidden_nodes, optimizer, loss, metrics, epochs, batch_size = set_up_vars()
+    train_obs, train_act = data.generator(batch_type='train')
+    validation_obs, validation_act= data.generator(batch_type='validation')
+    test_obs, test_act = data.generator(batch_type='test')
+
+    input_layer = Input(shape=(len(train_obs),))
+    hidden_layer = Dense(num_hidden_nodes[0], activations=activations[0])(input_layer)
+    for i in range(1,len(num_hidden_nodes)-1):
+        hidden_layer = Dense(num_hidden_nodes[i], activations=activations[0])(hidden_layer)
+
+        output_layer = Dense(num_hidden_nodes[len(num_hidden_nodes)-1], activations = activations[len(activations)-1])(hidden_layer)
+        model = Model(inputs=input_layer, outputs=output_layer)
+
+        model.compile(optimizer=optimizer,
+                loss=loss,
+                metrics=metrics)
+        tr_history = model.fit(train_obs[0], train_act[0],
+                batch_size=batch_size,
+                epochs=epochs,
+                verbose=1,
+                validation_data=(validation_obs[0],validation_act_vec[0]),
+                shuffle = True)
+        #model.evaluate(test_obs_vec, test_act_vec)
+
+
     return model
 
 if __name__ == "__main__":
